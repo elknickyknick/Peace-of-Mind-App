@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Peace of Mind - Nickolas Santiago</title>
+	<meta charset="utf-8" />
+	<link href='https://fonts.googleapis.com/css?family=Rochester' rel='stylesheet' type='text/css'>
+	<link href='https://fonts.googleapis.com/css?family=Medula+One' rel='stylesheet' type='text/css'>
+	<link href='https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz:400,700' rel='stylesheet' type='text/css'>
+	<!---import google maps and jquery--->
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCoR0OGoXsZeBx1pdf0dDjiZXhhFS2wH20&sensor=false"></script>
+	<script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+	
+	<style>
+		body
+		{
+			width: 100%;
+			height: 100%;
+			margin: 0;
+			background-color: #ABD1DE;
+		}
+		
+		#bibleverse-section
+		{
+			width: 80%;
+			margin-left: 8%;
+			padding: 14px 3px 0px 3px;
+		}
+		#verse-para
+		{
+			margin: 0px;
+			font-family: 'Rochester', cursive;
+			font-size: 42pt;
+			font-style: italic;
+		}
+		sup  /*not much*/
+		{
+			font-family: 'Yanone Kaffeesatz', sans-serif;
+			font-size: 17pt;
+			font-style: none;
+		}
+		#verse-para a
+		{
+			display: none;
+		}
+		#verse-number
+		{
+			font-family: 'Medula One', cursive;
+			margin: 0;
+			padding-right: 11px;
+			font-size: 30pt;
+		}
+		
+		#weather-section
+		{
+			margin-top: 65px;
+		}
+		#weather-title
+		{
+			margin-bottom: 0;
+			font-family: 'Yanone Kaffeesatz', sans-serif;
+			font-size: 34pt;
+			color: #2e2e2e;
+		}
+		#loc
+		{
+			margin: 0;
+			font-family: 'Yanone Kaffeesatz', sans-serif;
+			font-size: 22pt;
+			color: #2e2e2e;
+		}
+		
+		.weatherhalf
+		{
+			width: 34%;
+			font-family: 'Yanone Kaffeesatz', sans-serif;
+		}
+		#weatherhalf-left
+		{
+			margin-top: 40px;
+			margin-left: 12%;
+			float: left;
+		}
+		#weatherhalf-right
+		{
+			margin-right: 12%;
+			float: right;
+		}
+		
+		#temp
+		{
+			padding-right: 28%;
+			font-weight: 700;
+			font-size: 24.6pt;
+			vertical-align: middle;
+			color: #474747;
+		}
+		#tf
+		{
+			font-size: 42pt;
+			font-weight: 900;
+			color: #000000;
+		}
+		.extemp
+		{
+			margin-top: 0;
+			margin-bottom: 8.12px;
+			padding-right: 34%;
+			font-size: 27.55pt;
+			font-weight: 700;
+			vertical-align: middle;
+			color: #474747;
+		}
+		
+		#weath
+		{
+			padding-left: 3%;
+			font-weight: 700;
+			font-size: 24.6pt;
+			vertical-align: middle;
+			color: #474747;
+		}
+		#wth
+		{
+			font-size: 42pt;
+			font-weight: 900;
+			text-transform: capitalize;
+			color: #000000;
+		}
+		#weathicon
+		{
+			width: 112px;
+			margin-left: 27%;
+		}
+		.exweath
+		{
+			margin-top: 0;
+			margin-bottom: 8.12px;
+			padding-left: 27%;
+			font-size: 27.55pt;
+			font-weight: 700;
+			vertical-align: middle;
+			color: #474747;
+		}
+		
+		#speakercontrol
+		{
+			left: 8px;
+			position: absolute;
+			bottom: 8px;
+		}
+		#speakercontrol:hover
+		{
+			cursor: pointer;
+		}
+		#audiocontrols
+		{
+			display: none;
+		}
+	</style>
+	
+	<script>
+		"use strict";
+		var yourlat;
+		var yourlon;
+		
+		window.onload = function()
+		{
+			var audio_on = true;
+			playbgaudio();
+			
+			if (navigator.geolocation) 
+			{
+				navigator.geolocation.getCurrentPosition(loadweatherdata);
+			}
+			
+			//loadweatherdata();
+			loadbibledata();
+			document.querySelector('#speakercontrol').onclick = function(e)
+			{
+				if(audio_on == true)
+				{
+					audio_on = false;
+					stopbgaudio();
+				}
+				else if(audio_on == false)
+				{
+					audio_on = true;
+					playbgaudio();
+				}
+			};
+		};
+		
+		function loadweatherdata(position)
+		{
+			var xhr = new XMLHttpRequest();
+			xhr.onload = function()
+			{
+				//---set my variables
+				var bvJSON = JSON.parse(xhr.responseText);
+				console.log("xhr has loaded");
+				//var lochtml = "";
+				var lefthtml = "";
+				var righthtml = "";
+				//---have to convert temperature from kelvin to farenheit
+				var tf = Math.floor((9*bvJSON.main.temp)/5 - 459.67);
+				var tfhigh = Math.floor((9*bvJSON.main.temp_min)/5 - 459.67);
+				var tflow = Math.floor((9*bvJSON.main.temp_max)/5 - 459.67);
+				//---convert meters to miles
+				var windspeed = (bvJSON.wind.speed*2.2369).toFixed(1);
+				
+				//---code each side, first left....(mostly temperature stuff)
+				lefthtml = "<p id=" + "temp" + " align=" + "right" + ">Current Temperature: <b id="+"tf"+">" + tf + "</b></p>";
+				lefthtml += "<p class=" + "extemp" + " align=" + "right" + ">High: " + tfhigh + "</p>";
+				lefthtml += "<p class=" + "extemp" + " align=" + "right" + ">Low: " + tflow + "</p>";
+				lefthtml += "<p class=" + "extemp" + " align=" + "right" + ">Humidity: " + bvJSON.main.humidity + "</p>";
+				//---...now right side (weather stuff)
+					//----getting the weather description
+				var theweather = bvJSON.weather;
+				for(var we=0; we < theweather.length; we++)
+				{
+					righthtml = "<p id=" + "weath" + ">Weather: " + "<b id=" + "wth " + ">" + theweather[we].description + "</b></p>";
+					righthtml += "<img src=http://openweathermap.org/img/w/" +  theweather[we].icon + ".png id=" + "weathicon" + " />";
+				}
+				righthtml += "<p class=" + "exweath" + ">" + bvJSON.clouds.all + "% Cloudy</p>";
+				righthtml += "<p class=" + "exweath" + ">Wind: " + windspeed + "mi/hr</p>";
+				
+				document.querySelector('#loc').innerHTML = "(" + bvJSON.name + ", " + bvJSON.sys.country + ")";
+				document.querySelector('#weatherhalf-left').innerHTML = lefthtml;
+				document.querySelector('#weatherhalf-right').innerHTML = righthtml;
+			}
+			console.log(yourlat);
+			var url = "http://api.openweathermap.org/data/2.5/weather?lat=" + position.coords.latitude + "&lon=" + position.coords.longitude + "&APPID=8e9c746b6c25a66cee0fcc7cbb95d042";
+			xhr.open('GET',url,true);
+			xhr.send();
+		}
+		
+		function loadbibledata()
+		{
+			console.log("load bible data called");
+			var script = document.createElement('script');
+			var url = "https://labs.bible.org/api/?passage=votd&type=json&callback=verseLoaded";
+			script.setAttribute('src',url);
+			script.setAttribute('id','labsbiblefetch');
+			document.querySelector('head').appendChild(script);
+		}
+		function verseLoaded(obj)
+		{
+			var versehtml = "";
+			//---need a var to hold all the verses since some days have multiple lines 
+			var bText = "";
+			var bTextNum;
+			//---these variables are for citing the verse
+			var bBook;
+			var bChapt;
+			//---we're always going to have atleast ONE verse, so we're gonna need a variable to hold that...
+			var bVerse;
+			var bVerseFinal;
+			
+			//---code that builds the actual verse
+			versehtml = "<p id=" + "verse-para" + " >";
+			for(var b=0; b < obj.length; b++)
+			{
+				versehtml += "<sup>" + obj[b].verse + "</sup>" + obj[b].text;
+				
+				//---setting the citation variables
+				bBook = obj[b].bookname;
+				bChapt = obj[b].chapter;
+				//---...the problem withe verse number is that, if we have multiple verses, we only want 2...
+				bVerse = obj[0].verse    //...this gives us the first...
+				//...and only if obj.length = more than one, we want the final one
+				bVerseFinal = obj[b].verse;
+			}
+			versehtml += "</p>"; 
+			
+			versehtml += "<p id=" + "verse-number " + "align=" + "right " + " >";
+			versehtml += bBook + " " + bChapt + ":" + bVerse;
+			if(obj.length > 1)
+			{
+				versehtml += "-" + bVerseFinal;
+			}
+			versehtml += "</p>";
+			
+			document.querySelector('#bibleverse-section').innerHTML = versehtml;
+		}
+		
+		function playbgaudio()
+		{
+			var bgsong = document.querySelector("#bgaudio");
+			bgsong.volume=0.24;
+			bgsong.play();
+			document.querySelector("#speakercontrol").src = "soundbuttonON.png";
+		}
+		function stopbgaudio()
+		{
+			var bgsong = document.querySelector("#bgaudio");
+			bgsong.pause();
+			document.querySelector("#speakercontrol").src = "soundbuttonOFF.png";
+		}
+		function onLocationError(msg)
+		{
+			console.log("location not supported");
+		}
+		function onLocationSuccess(position)
+		{
+			var lat = (position.coords.latitude).toFixed(3);
+			var lon = (position.coords.longitude).toFixed(3);
+			
+			yourlat = lat;
+			yourlon = lon;
+			console.log(yourlat + "   " + lon);
+		}
+	</script>
+</head>
+<body>
+	<div id="bibleverse-section">
+	</div>
+	<div id="weather-section">
+		<h1 id="weather-title" align="center" >Your Weather Report</h1>
+		<p id="loc" align="center"></p>
+		<div class="weatherhalf" id="weatherhalf-left">
+		</div>
+		<div class="weatherhalf" id="weatherhalf-right">
+		</div>
+	</div>
+	<img id="speakercontrol" src="soundbuttonON.png" />
+	<section id="audiocontrols">
+		<audio id="bgaudio" src="Ocean_Waves-Mike_Koenig-980635527.mp3" controls loop></audio>
+	</div>
+</body>
+</html>
